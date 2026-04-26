@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini CLI — الدليل الشامل</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --bg2: #0f1520;
+  --bg3: #141b2d;
+  --card: #111827;
+  --border: #1e293b;
+  --border2: #243044;
+  --primary: #4ade80;
+  --primary-dim: rgba(74,222,128,0.08);
+  --primary-glow: rgba(74,222,128,0.3);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,0.08);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.08);
+  --orange: #fb923c;
+  --orange-dim: rgba(251,146,60,0.08);
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Tajawal', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* Animated background grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HERO */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(74,222,128,0.12) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary-dim);
+  border: 1px solid rgba(74,222,128,0.2);
+  color: var(--primary);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-bottom: 32px;
+  animation: fadeDown 0.6s ease both;
+}
+
+.hero-badge::before {
+  content: '●';
+  font-size: 8px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hero h1 {
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 800;
+  letter-spacing: -3px;
+  line-height: 1;
+  margin-bottom: 24px;
+  animation: fadeDown 0.6s 0.1s ease both;
+}
+
+.hero h1 .gem {
+  background: linear-gradient(135deg, #4ade80, #22d3ee, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero h1 .cli {
+  color: var(--text3);
+  font-family: var(--mono);
+  font-weight: 300;
+}
+
+.hero p {
+  font-size: 18px;
+  color: var(--text2);
+  max-width: 600px;
+  margin-bottom: 48px;
+  animation: fadeDown 0.6s 0.2s ease both;
+}
+
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  max-width: 800px;
+  animation: fadeDown 0.6s 0.3s ease both;
+}
+
+.toc-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toc-item:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-dim);
+  transform: translateY(-2px);
+}
+
+/* Scroll indicator */
+.scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text3);
+  font-size: 12px;
+  font-family: var(--mono);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 1s 1s ease both;
+}
+
+.scroll-arrow {
+  width: 20px;
+  height: 20px;
+  border-right: 2px solid var(--text3);
+  border-bottom: 2px solid var(--text3);
+  transform: rotate(45deg);
+  animation: bounce 1.5s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: rotate(45deg) translateY(0); }
+  50% { transform: rotate(45deg) translateY(5px); }
+}
+
+/* MAIN LAYOUT */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* SECTIONS */
+.section {
+  padding: 80px 0;
+  border-top: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.section-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--primary);
+  background: var(--primary-dim);
+  border: 1px solid rgba(74,222,128,0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.section-sub {
+  color: var(--text2);
+  font-size: 16px;
+  margin-top: 8px;
+  max-width: 600px;
+}
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent, var(--primary)), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.card:hover {
+  border-color: var(--border2);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.card:hover::before { opacity: 1; }
+
+.card-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.card h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.card p {
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* CODE BLOCKS */
+.code-block {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 20px 0;
+  font-family: var(--mono);
+  direction: ltr;
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.code-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot-red { background: #ff5f57; }
+.dot-yellow { background: #febc2e; }
+.dot-green { background: #28c840; }
+
+.code-label {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.code-content {
+  padding: 20px;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.code-content .cmd { color: var(--primary); }
+.code-content .flag { color: var(--blue); }
+.code-content .str { color: var(--orange); }
+.code-content .cmt { color: var(--text3); font-style: italic; }
+.code-content .key { color: var(--purple); }
+.code-content .val { color: var(--yellow); }
+
+/* STEPS */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.steps::before {
+  content: '';
+  position: absolute;
+  right: 19px;
+  top: 24px;
+  bottom: 24px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--primary), var(--blue), var(--purple));
+  opacity: 0.3;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  padding: 24px 0;
+}
+
+.step-num {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+.step-content {
+  flex: 1;
+  padding-top: 8px;
+}
+
+.step-content h4 {
+  font-size: 17px;
+  margin-bottom: 8px;
+}
+
+.step-content p {
+  color: var(--text2);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* TABLE */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th {
+  background: var(--card);
+  padding: 12px 16px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: var(--mono);
+}
+
+.badge-green { background: var(--primary-dim); color: var(--primary); border: 1px solid rgba(74,222,128,0.2); }
+.badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
+
+/* HIGHLIGHT BLOCKS */
+.highlight {
+  background: var(--primary-dim);
+  border: 1px solid rgba(74,222,128,0.2);
+  border-right: 3px solid var(--primary);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.highlight.blue {
+  background: var(--blue-dim);
+  border-color: rgba(96,165,250,0.2);
+  border-right-color: var(--blue);
+}
+
+.highlight.orange {
+  background: var(--orange-dim);
+  border-color: rgba(251,146,60,0.2);
+  border-right-color: var(--orange);
+}
+
+.highlight.purple {
+  background: var(--purple-dim);
+  border-color: rgba(167,139,250,0.2);
+  border-right-color: var(--purple);
+}
+
+.highlight strong { color: var(--text); }
+
+/* AGENT DIAGRAM */
+.agent-diagram {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  margin: 32px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.agent-diagram::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(74,222,128,0.06) 0%, transparent 60%);
+}
+
+.diagram-title {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 32px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.diagram-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.diagram-node {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 14px 20px;
+  text-align: center;
+  font-size: 13px;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.diagram-node:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.diagram-node.orchestrator {
+  background: linear-gradient(135deg, rgba(74,222,128,0.1), rgba(34,211,238,0.1));
+  border-color: rgba(74,222,128,0.3);
+  padding: 18px 32px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.diagram-node.orchestrator .node-label { color: var(--primary); }
+
+.diagram-node.builder { border-color: rgba(96,165,250,0.3); }
+.diagram-node.builder .node-label { color: var(--blue); }
+
+.diagram-node.reviewer { border-color: rgba(167,139,250,0.3); }
+.diagram-node.reviewer .node-label { color: var(--purple); }
+
+.node-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  margin-bottom: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.node-name {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.node-desc {
+  color: var(--text3);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.diagram-arrows {
+  display: flex;
+  justify-content: center;
+  gap: 80px;
+  color: var(--text3);
+  font-size: 18px;
+  margin: 4px 0;
+  flex-wrap: wrap;
+}
+
+.arrow-down {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.arrow-line {
+  width: 1px;
+  height: 20px;
+  background: var(--border2);
+}
+
+.arrow-head {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--border2);
+}
+
+.parallel-badge {
+  background: var(--orange-dim);
+  border: 1px solid rgba(251,146,60,0.2);
+  color: var(--orange);
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin: 0 auto 16px;
+  display: table;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* FILE TREE */
+.file-tree {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  font-family: var(--mono);
+  font-size: 13px;
+  direction: ltr;
+  line-height: 2;
+}
+
+.file-tree .dir { color: var(--blue); }
+.file-tree .file { color: var(--text2); }
+.file-tree .new { color: var(--primary); }
+.file-tree .cmt { color: var(--text3); font-style: italic; }
+
+/* COMMANDS TABLE */
+.cmd-table {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.cmd-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  align-items: start;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: border-color 0.2s;
+}
+
+.cmd-row:hover { border-color: var(--border2); }
+
+.cmd-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--primary);
+  word-break: break-all;
+}
+
+.cmd-desc {
+  font-size: 14px;
+  color: var(--text2);
+}
+
+/* COMPARISON */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.comp-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.comp-card h4 {
+  font-family: var(--mono);
+  font-size: 13px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.comp-card.green h4 { color: var(--primary); border-color: rgba(74,222,128,0.2); }
+.comp-card.blue h4 { color: var(--blue); border-color: rgba(96,165,250,0.2); }
+
+.comp-item {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+
+.comp-item::before {
+  font-size: 10px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.comp-card.green .comp-item::before { content: '▶'; color: var(--primary); }
+.comp-card.blue .comp-item::before { content: '▶'; color: var(--blue); }
+
+/* ANIMATIONS */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* FOOTER */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 0;
+  text-align: center;
+  color: var(--text3);
+  font-size: 13px;
+  font-family: var(--mono);
+}
+
+/* Inline code */
+code {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--orange);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .comparison { grid-template-columns: 1fr; }
+  .cmd-row { grid-template-columns: 1fr; }
+  .steps::before { display: none; }
+  .diagram-arrows { gap: 30px; }
+  .agent-diagram { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge">v0.39.1 · الدليل الشامل</div>
+  <h1>
+    <span class="gem">Gemini</span><br>
+    <span class="cli">CLI</span>
+  </h1>
+  <p>من إعداد الـ MCP لحد بناء نظام Multi-Agent كامل يبني Flutter app من Figma</p>
+  <div class="toc">
+    <a class="toc-item" href="#mcp">⚡ MCP Setup</a>
+    <a class="toc-item" href="#commands">⌨️ الأوامر</a>
+    <a class="toc-item" href="#rules">📋 Rules</a>
+    <a class="toc-item" href="#skills">🛠️ Skills</a>
+    <a class="toc-item" href="#agents">🤖 Agents</a>
+    <a class="toc-item" href="#system">🚀 النظام الكامل</a>
+  </div>
+  <div class="scroll-hint">
+    scroll
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<div class="container">
+
+<!-- ========== SECTION 1: MCP ========== -->
+<section class="section" id="mcp">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <div>
+      <div class="section-title">إعداد Figma MCP</div>
+      <div class="section-sub">ربط Gemini CLI بـ Figma عشان يقرأ الـ designs مباشرةً</div>
+    </div>
+  </div>
+
+  <div class="highlight blue">
+    <strong>⚠️ شرط أساسي:</strong> الـ Figma MCP يشتغل بس مع حسابات عندها <strong>Dev seat أو Full seat</strong> على خطة Professional أو Organization أو Enterprise.
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>افتح الـ settings.json</h4>
+        <p>الملف ده هو قلب إعدادات Gemini CLI</p>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-label">terminal</span>
+          </div>
+          <div class="code-content">
+<span class="cmt"># Mac / Linux</span>
+<span class="cmd">nano</span> ~/.gemini/settings.json
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>أضف الـ Figma MCP Server</h4>
+        <p>ضيف الـ <code>mcpServers</code> block جوّا الملف</p>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-label">~/.gemini/settings.json</span>
+          </div>
+          <div class="code-content">
+{
+  <span class="key">"ide"</span>: { <span class="key">"hasSeenNudge"</span>: <span class="val">true</span> },
+  <span class="key">"security"</span>: {
+    <span class="key">"auth"</span>: { <span class="key">"selectedType"</span>: <span class="str">"oauth-personal"</span> }
+  },
+  <span class="key">"general"</span>: {},
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"figma"</span>: {
+      <span class="key">"url"</span>: <span class="str">"https://mcp.figma.com/mcp"</span>,
+      <span class="key">"transport"</span>: <span class="str">"http"</span>
+    }
+  }
+}
+          </div>
+        </div>
+        <p>احفظ: <strong>Ctrl+O</strong> ثم <strong>Enter</strong> ثم <strong>Ctrl+X</strong></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>افتح Gemini CLI واعمل Authentication</h4>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-label">terminal</span>
+          </div>
+          <div class="code-content">
+<span class="cmd">gemini</span>
+<span class="cmt"># جوّا الـ CLI اكتب:</span>
+/mcp auth figma
+<span class="cmt"># هيفتح المتصفح تلقائياً للـ login</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>تأكد إن كل حاجة شغالة</h4>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-label">footer المفروض يبان كده</span>
+          </div>
+          <div class="code-content">
+<span class="cmt">─────────────────────────────────────────</span>
+1 GEMINI.md file · <span class="cmd">1 MCP server</span> · 4 skills
+<span class="cmt">─────────────────────────────────────────</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin: 32px 0 16px; font-size: 18px;">ازاي تستخدم Figma MCP</h3>
+  <div class="highlight">
+    <strong>الطريقة:</strong> انسخ لينك أي frame من Figma (Right click → Copy link to selection) وابعته مع طلبك
+  </div>
+  <div class="cmd-table">
+    <div class="cmd-row">
+      <div class="cmd-name">تحويل لـ HTML</div>
+      <div class="cmd-desc">اعمل HTML و CSS للـ frame ده: <code>https://figma.com/design/xxx...</code></div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-name">React Component</div>
+      <div class="cmd-desc">حوّل الـ design ده لـ React component: <code>[لينك]</code></div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-name">استخراج Colors</div>
+      <div class="cmd-desc">إيه الـ color palette في: <code>[لينك]</code></div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-name">Flutter Widget</div>
+      <div class="cmd-desc">اعمل Flutter widget من الـ design ده: <code>[لينك]</code></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 2: COMMANDS ========== -->
+<section class="section" id="commands">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <div>
+      <div class="section-title">الأوامر والـ Slash Commands</div>
+      <div class="section-sub">كل الأوامر اللي محتاج تعرفها جوّا وبرّا الـ CLI</div>
+    </div>
+  </div>
+
+  <h3 style="margin-bottom: 16px; color: var(--text2); font-size: 16px; font-weight: 500;">أوامر الـ Terminal (برّا الـ CLI)</h3>
+  <div class="cmd-table">
+    <div class="cmd-row">
+      <div class="cmd-name"><code>gemini</code></div>
+      <div class="cmd-desc">تشغيل الـ CLI في الـ directory الحالي</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-name"><code>gemini mcp list</code></div>
+      <div class="cmd-desc">عرض كل الـ MCP servers المضافة</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-name"><code>gemini mcp add</code></div>
+      <div class="cmd-desc">إضافة MCP server جديد</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-name"><code>gemini mcp remove [name]</code></div>
+      <div class="cmd-desc">حذف MCP server</div>
+    </div>
+  </div>
+
+  <h3 style="margin: 32px 0 16px; color: var(--text2); font-size: 16px; font-weight: 500;">الـ Slash Commands (جوّا الـ CLI)</h3>
+  <div class="cards">
+    <div class="card" style="--accent: var(--primary)">
+      <div class="card-icon">🧠</div>
+      <h3>/memory show</h3>
+      <p>عرض الـ GEMINI.md المحملة والـ rules الفعّالة</p>
+    </div>
+    <div class="card" style="--accent: var(--primary)">
+      <div class="card-icon">🔄</div>
+      <h3>/memory reload</h3>
+      <p>إعادة تحميل كل الـ GEMINI.md files</p>
+    </div>
+    <div class="card" style="--accent: var(--primary)">
+      <div class="card-icon">➕</div>
+      <h3>/memory add [text]</h3>
+      <p>إضافة rule جديدة للـ GEMINI.md على الطاير</p>
+    </div>
+    <div class="card" style="--accent: var(--blue)">
+      <div class="card-icon">🛠️</div>
+      <h3>/skills</h3>
+      <p>عرض كل الـ skills المتاحة وطريقة تفعيلها</p>
+    </div>
+    <div class="card" style="--accent: var(--purple)">
+      <div class="card-icon">🤖</div>
+      <h3>/agents</h3>
+      <p>عرض كل الـ subagents المتاحة</p>
+    </div>
+    <div class="card" style="--accent: var(--purple)">
+      <div class="card-icon">🔃</div>
+      <h3>/agents reload</h3>
+      <p>إعادة تحميل الـ agents بعد أي تعديل</p>
+    </div>
+    <div class="card" style="--accent: var(--orange)">
+      <div class="card-icon">🔌</div>
+      <h3>/mcp auth [name]</h3>
+      <p>عمل authentication لـ MCP server معين</p>
+    </div>
+    <div class="card" style="--accent: var(--orange)">
+      <div class="card-icon">📋</div>
+      <h3>/model</h3>
+      <p>عرض وتغيير الـ model المستخدم</p>
+    </div>
+  </div>
+
+  <h3 style="margin: 32px 0 16px; color: var(--text2); font-size: 16px; font-weight: 500;">الـ @ Syntax — تفعيل Subagent مباشرة</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">@ syntax examples</span>
+    </div>
+    <div class="code-content">
+<span class="cmt"># تفعيل subagent معين مباشرةً</span>
+@flutter-reviewer <span class="str">Review the auth feature</span>
+
+<span class="cmt"># تشغيل built-in agents</span>
+@codebase_investigator <span class="str">Map out the DI setup</span>
+@generalist <span class="str">Update headers in all files</span>
+
+<span class="cmt"># تشغيل parallel (أكتر من agent في نفس الوقت)</span>
+<span class="str">"Review in parallel: @security-auditor for auth, @flutter-reviewer for home"</span>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 3: RULES ========== -->
+<section class="section" id="rules">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <div>
+      <div class="section-title">الـ Rules — GEMINI.md</div>
+      <div class="section-sub">تعليمات دايمة بتتحمل مع كل رسالة تبعتها للـ CLI</div>
+    </div>
+  </div>
+
+  <div class="comparison">
+    <div class="comp-card green">
+      <h4>✅ حط في GEMINI.md</h4>
+      <div class="comp-item">Rules اللغة والتواصل</div>
+      <div class="comp-item">State Management (Cubit rules)</div>
+      <div class="comp-item">Code Style & Naming</div>
+      <div class="comp-item">Forbidden Practices</div>
+      <div class="comp-item">UI & Styling guidelines</div>
+      <div class="comp-item">حاجات محتاجها في كل رد</div>
+    </div>
+    <div class="comp-card blue">
+      <h4>🛠️ حط في Skills بدل كده</h4>
+      <div class="comp-item">Folder structure كاملة</div>
+      <div class="comp-item">Architecture patterns</div>
+      <div class="comp-item">Networking & API details</div>
+      <div class="comp-item">Performance optimization</div>
+      <div class="comp-item">Debugging workflows</div>
+      <div class="comp-item">حاجات بتتفعّل بس لما محتاجها</div>
+    </div>
+  </div>
+
+  <h3 style="margin: 32px 0 16px; font-size: 18px;">إعداد الـ GEMINI.md</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Global GEMINI.md — لكل المشاريع</h4>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-label">terminal</span>
+          </div>
+          <div class="code-content">
+<span class="cmd">nano</span> ~/.gemini/GEMINI.md
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Project GEMINI.md — لمشروع معين</h4>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-label">terminal</span>
+          </div>
+          <div class="code-content">
+<span class="cmd">nano</span> /path/to/project/GEMINI.md
+<span class="cmt"># يتحمل تلقائياً لما تشغّل gemini في المشروع</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>إضافة Rule على الطاير (جوّا الـ CLI)</h4>
+        <div class="code-block">
+          <div class="code-header">
+            <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+            <span class="code-label">داخل Gemini CLI</span>
+          </div>
+          <div class="code-content">
+/memory add Always use const constructors for widgets
+/memory show <span class="cmt"># تأكد إنها اتضافت</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight orange">
+    <strong>الـ Hierarchy:</strong> لو عندك GEMINI.md في أكتر من مكان، Gemini بيحمّلهم كلهم ويدمجهم. الـ Project file بياخد أولوية على الـ Global.
+  </div>
+</section>
+
+<!-- ========== SECTION 4: SKILLS ========== -->
+<section class="section" id="skills">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <div>
+      <div class="section-title">الـ Skills</div>
+      <div class="section-sub">خبرة on-demand — بتتفعّل لما Gemini يحتاجها بس، من غير ما تاكل context دايماً</div>
+    </div>
+  </div>
+
+  <div class="highlight purple">
+    <strong>الفرق عن GEMINI.md:</strong> الـ Skill بيتحمل في الـ context بس لما يتفعّل — ده بيوفّر tokens ويخلي الـ main context نضيف.
+  </div>
+
+  <h3 style="margin: 24px 0 16px; font-size: 18px;">إعداد الـ Skills</h3>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">terminal — إنشاء skill جديدة</span>
+    </div>
+    <div class="code-content">
+<span class="cmt"># Personal skills (كل المشاريع)</span>
+<span class="cmd">mkdir -p</span> ~/.gemini/skills/my-skill
+<span class="cmd">nano</span> ~/.gemini/skills/my-skill/SKILL.md
+
+<span class="cmt"># Project skills (مشروع معين)</span>
+<span class="cmd">mkdir -p</span> .gemini/skills/my-skill
+<span class="cmd">nano</span> .gemini/skills/my-skill/SKILL.md
+    </div>
+  </div>
+
+  <h3 style="margin: 24px 0 16px; font-size: 18px;">شكل ملف الـ SKILL.md</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">~/.gemini/skills/create-feature/SKILL.md</span>
+    </div>
+    <div class="code-content">
+<span class="key">---</span>
+<span class="key">name:</span> <span class="str">create-feature</span>
+<span class="key">description:</span> <span class="str">Use when creating a new Flutter feature.</span>
+<span class="cmt">           Provides folder structure and architecture rules.</span>
+<span class="key">---</span>
+
+<span class="cmt"># المحتوى هنا بيتحمل بس لما الـ skill تتفعّل</span>
+
+## Folder Structure
+...
+
+## Rules
+...
+    </div>
+  </div>
+
+  <h3 style="margin: 32px 0 16px; font-size: 18px;">الـ Skills في مشروع Flutter</h3>
+  <div class="cards">
+    <div class="card" style="--accent: var(--primary)">
+      <div class="card-icon">🏗️</div>
+      <h3>create-feature</h3>
+      <p>Folder structure + View-Section-Widget + DI setup</p>
+      <div style="margin-top: 12px"><span class="badge badge-green">Sections 1, 3, 4, 14</span></div>
+    </div>
+    <div class="card" style="--accent: var(--blue)">
+      <div class="card-icon">🌐</div>
+      <h3>networking</h3>
+      <p>API calls + Repositories + Error handling + ApiResult</p>
+      <div style="margin-top: 12px"><span class="badge badge-blue">Sections 7, 8, 9</span></div>
+    </div>
+    <div class="card" style="--accent: var(--orange)">
+      <div class="card-icon">⚡</div>
+      <h3>performance-review</h3>
+      <p>Const widgets + BlocSelector + Image optimization</p>
+      <div style="margin-top: 12px"><span class="badge badge-orange">Section 15</span></div>
+    </div>
+    <div class="card" style="--accent: var(--purple)">
+      <div class="card-icon">🐛</div>
+      <h3>debug-issue</h3>
+      <p>Error tracing by layer + Error handling checklist</p>
+      <div style="margin-top: 12px"><span class="badge badge-purple">Sections 9, 17</span></div>
+    </div>
+  </div>
+
+  <div class="table-wrap" style="margin-top: 32px">
+    <table>
+      <tr>
+        <th></th>
+        <th>GEMINI.md</th>
+        <th>Skills</th>
+        <th>Subagents</th>
+      </tr>
+      <tr>
+        <td>متى يشتغل</td>
+        <td>دايماً</td>
+        <td>لما الـ task يتطابق</td>
+        <td>لما يتفعّل صراحةً أو تلقائياً</td>
+      </tr>
+      <tr>
+        <td>الـ Context</td>
+        <td>دايماً في الـ context</td>
+        <td>بس عند التفعيل</td>
+        <td>context window منفصل تماماً</td>
+      </tr>
+      <tr>
+        <td>الاستخدام</td>
+        <td>Rules عامة</td>
+        <td>خبرة متخصصة</td>
+        <td>Tasks كاملة ومستقلة</td>
+      </tr>
+      <tr>
+        <td>Parallel</td>
+        <td>—</td>
+        <td>—</td>
+        <td><span class="badge badge-green">✓ مدعوم</span></td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ========== SECTION 5: AGENTS ========== -->
+<section class="section" id="agents">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <div>
+      <div class="section-title">الـ Subagents</div>
+      <div class="section-sub">كل subagent بيشتغل في context window منفصل ويرجع النتيجة للـ main agent</div>
+    </div>
+  </div>
+
+  <h3 style="margin-bottom: 16px; font-size: 18px;">الـ Built-in Agents (جاهزة من غير إعداد)</h3>
+  <div class="cards">
+    <div class="card" style="--accent: var(--primary)">
+      <div class="card-icon">🤖</div>
+      <h3>generalist</h3>
+      <p>General purpose لأي task كبيرة — بياخد كل الـ tools. مثالي لـ multi-file refactoring.</p>
+    </div>
+    <div class="card" style="--accent: var(--blue)">
+      <div class="card-icon">📖</div>
+      <h3>cli_help</h3>
+      <p>خبير في Gemini CLI نفسه — للأسئلة عن الـ features والـ commands.</p>
+    </div>
+    <div class="card" style="--accent: var(--purple)">
+      <div class="card-icon">🔍</div>
+      <h3>codebase_investigator</h3>
+      <p>متخصص في تحليل الكود — architecture mapping وـ bug root-cause analysis.</p>
+    </div>
+  </div>
+
+  <h3 style="margin: 32px 0 16px; font-size: 18px;">إعداد Custom Subagent</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">terminal</span>
+    </div>
+    <div class="code-content">
+<span class="cmt"># Personal agents (كل المشاريع)</span>
+<span class="cmd">mkdir -p</span> ~/.gemini/agents
+<span class="cmd">nano</span> ~/.gemini/agents/flutter-reviewer.md
+
+<span class="cmt"># Project agents (للـ team)</span>
+<span class="cmd">mkdir -p</span> .gemini/agents
+<span class="cmd">nano</span> .gemini/agents/flutter-reviewer.md
+    </div>
+  </div>
+
+  <h3 style="margin: 24px 0 16px; font-size: 18px;">شكل ملف الـ Agent</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">~/.gemini/agents/flutter-reviewer.md</span>
+    </div>
+    <div class="code-content">
+<span class="key">---</span>
+<span class="key">name:</span> <span class="str">flutter-reviewer</span>
+<span class="key">description:</span> <span class="str">Flutter code reviewer. Use when reviewing code</span>
+<span class="cmt">             for Clean Architecture violations or performance issues.</span>
+<span class="key">tools:</span>
+  - <span class="val">read_file</span>
+  - <span class="val">list_directory</span>
+  - <span class="val">search_file_content</span>
+<span class="key">---</span>
+
+You are a Senior Flutter Code Reviewer.
+
+<span class="cmt">## Review Checklist</span>
+- No business logic in widgets/views
+- BlocBuilder has buildWhen
+- No hardcoded colors
+- Files under 200 lines
+...
+    </div>
+  </div>
+
+  <div class="highlight orange">
+    <strong>⚠️ قاعدة مهمة:</strong> الـ Subagents مش تقدر تستدعي subagents تانية — يعني recursion ممنوع. بس الـ main agent هو اللي يستدعيهم.
+  </div>
+
+  <h3 style="margin: 24px 0 16px; font-size: 18px;">الـ Tools المتاحة للـ Agents</h3>
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>Tool</th>
+        <th>الوصف</th>
+        <th>متى تستخدمه</th>
+      </tr>
+      <tr>
+        <td><code>read_file</code></td>
+        <td>قراءة محتوى ملف</td>
+        <td>تحليل كود موجود</td>
+      </tr>
+      <tr>
+        <td><code>write_file</code></td>
+        <td>كتابة/تعديل ملف</td>
+        <td>إنشاء أو تعديل كود</td>
+      </tr>
+      <tr>
+        <td><code>list_directory</code></td>
+        <td>عرض محتوى مجلد</td>
+        <td>فهم الـ structure</td>
+      </tr>
+      <tr>
+        <td><code>create_directory</code></td>
+        <td>إنشاء مجلد</td>
+        <td>إنشاء feature structure</td>
+      </tr>
+      <tr>
+        <td><code>run_shell_command</code></td>
+        <td>تشغيل أوامر terminal</td>
+        <td>dart format, flutter pub get</td>
+      </tr>
+      <tr>
+        <td><code>search_file_content</code></td>
+        <td>البحث في محتوى الملفات</td>
+        <td>إيجاد patterns في الكود</td>
+      </tr>
+      <tr>
+        <td><code>mcp_figma_*</code></td>
+        <td>كل Figma MCP tools</td>
+        <td>قراءة الـ designs</td>
+      </tr>
+      <tr>
+        <td><code>*</code></td>
+        <td>كل الـ tools</td>
+        <td>للـ orchestrator agent</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ========== SECTION 6: FULL SYSTEM ========== -->
+<section class="section" id="system">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <div>
+      <div class="section-title">النظام الكامل: Figma → Flutter</div>
+      <div class="section-sub">Orchestrator agent يقرأ الـ Figma ويوزّع الـ features على subagents بالتوازي</div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE DIAGRAM -->
+  <div class="agent-diagram">
+    <div class="diagram-title">// Hub & Spoke Architecture</div>
+
+    <div class="diagram-row">
+      <div class="diagram-node orchestrator">
+        <div class="node-label">Orchestrator</div>
+        <div class="node-name">figma-orchestrator</div>
+        <div class="node-desc">يحلل Figma + يقسّم المهام + يوزّع</div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:80px; margin: 8px 0; flex-wrap:wrap;">
+      <div class="arrow-down"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="arrow-down"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="arrow-down"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+    </div>
+
+    <div class="parallel-badge">⚡ PARALLEL EXECUTION</div>
+
+    <div class="diagram-row">
+      <div class="diagram-node builder">
+        <div class="node-label">Sub-Agent</div>
+        <div class="node-name">feature-builder</div>
+        <div class="node-desc">auth feature</div>
+      </div>
+      <div class="diagram-node builder">
+        <div class="node-label">Sub-Agent</div>
+        <div class="node-name">feature-builder</div>
+        <div class="node-desc">home feature</div>
+      </div>
+      <div class="diagram-node builder">
+        <div class="node-label">Sub-Agent</div>
+        <div class="node-name">feature-builder</div>
+        <div class="node-desc">profile feature</div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; margin: 8px 0;">
+      <div class="arrow-down"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+    </div>
+
+    <div class="diagram-row">
+      <div class="diagram-node reviewer">
+        <div class="node-label">Review Agent</div>
+        <div class="node-name">flutter-reviewer</div>
+        <div class="node-desc">يراجع كل الـ features بعد الإنشاء</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE BY PHASE -->
+  <h3 style="margin: 40px 0 24px; font-size: 20px;">الإعداد خطوة بخطوة</h3>
+
+  <h4 style="color: var(--primary); font-family: var(--mono); font-size: 13px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Phase 1 — إنشاء الملفات</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">terminal</span>
+    </div>
+    <div class="code-content">
+<span class="cmd">mkdir -p</span> ~/.gemini/agents
+<span class="cmd">touch</span> ~/.gemini/agents/figma-orchestrator.md
+<span class="cmd">touch</span> ~/.gemini/agents/feature-builder.md
+<span class="cmd">touch</span> ~/.gemini/agents/flutter-reviewer.md
+    </div>
+  </div>
+
+  <h4 style="color: var(--blue); font-family: var(--mono); font-size: 13px; margin: 28px 0 12px; text-transform: uppercase; letter-spacing: 1px;">Phase 2 — Orchestrator Agent</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">~/.gemini/agents/figma-orchestrator.md</span>
+    </div>
+    <div class="code-content">
+<span class="key">---</span>
+<span class="key">name:</span> <span class="str">figma-orchestrator</span>
+<span class="key">description:</span> <span class="str">Use when given a Figma URL to build a complete Flutter app.</span>
+<span class="cmt">             Analyzes the design, breaks it into features,</span>
+<span class="cmt">             and delegates each feature to specialist subagents in parallel.</span>
+<span class="key">tools:</span>
+  - <span class="val">mcp_figma_get_design_context</span>
+  - <span class="val">mcp_figma_get_screenshot</span>
+  - <span class="val">mcp_figma_get_metadata</span>
+  - <span class="val">read_file</span>
+  - <span class="val">list_directory</span>
+  - <span class="val">write_file</span>
+<span class="key">---</span>
+
+You are a Flutter Project Architect and Orchestrator.
+
+## Your Mission
+When given a Figma URL:
+1. Use get_design_context to fully analyze the design
+2. Use get_screenshot to visually understand the screens
+3. Identify ALL distinct features/screens in the design
+4. Analyze the existing project structure
+5. Create a structured implementation plan
+6. Delegate each feature to @feature-builder IN PARALLEL
+7. After all features are built, delegate to @flutter-reviewer
+
+## Workflow
+
+### Phase 1 — Design Analysis
+- Call get_design_context with the provided Figma URL
+- List every screen and component you find
+- Map screens to Flutter features
+
+### Phase 2 — Project Analysis
+- Read lib/ structure to understand existing patterns
+- Find existing: Cubits, Models, Widgets, Colors, Theme
+
+### Phase 3 — Implementation Plan
+```
+Features to build:
+1. auth — LoginView, RegisterView
+2. home — HomeView, ProductListSection
+3. profile — ProfileView, EditProfileSection
+```
+
+### Phase 4 — Parallel Delegation
+Say explicitly:
+"I will now delegate all features to @feature-builder in parallel:
+- @feature-builder Build the auth feature: [full details]
+- @feature-builder Build the home feature: [full details]"
+
+### Phase 5 — Final Review
+"@flutter-reviewer Review all new features in lib/src/features/"
+
+## Rules
+- NEVER build code yourself — you are orchestrator only
+- Always provide FULL context to each subagent
+- Always run Phase 1 and 2 before anything else
+    </div>
+  </div>
+
+  <h4 style="color: var(--blue); font-family: var(--mono); font-size: 13px; margin: 28px 0 12px; text-transform: uppercase; letter-spacing: 1px;">Phase 3 — Feature Builder Agent</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">~/.gemini/agents/feature-builder.md</span>
+    </div>
+    <div class="code-content">
+<span class="key">---</span>
+<span class="key">name:</span> <span class="str">feature-builder</span>
+<span class="key">description:</span> <span class="str">Flutter feature specialist. Builds a complete Flutter</span>
+<span class="cmt">             feature with cubit, data layer, DI, router, and presentation.</span>
+<span class="key">tools:</span>
+  - <span class="val">read_file</span>
+  - <span class="val">write_file</span>
+  - <span class="val">create_directory</span>
+  - <span class="val">list_directory</span>
+  - <span class="val">run_shell_command</span>
+<span class="key">---</span>
+
+You are a Senior Flutter Engineer.
+
+## Always Create This Structure
+lib/src/features/{feature_name}/
+├── cubit/
+│   ├── {feature}_cubit.dart
+│   └── {feature}_states.dart
+├── data/
+│   ├── model/{feature}_model.dart
+│   ├── repo/{feature}_repo.dart
+│   └── data_source/{feature}_remote_data_source.dart
+├── di/{feature}_di.dart
+├── router/{feature}_router.dart
+└── presentation/
+    ├── views/{feature}_view.dart
+    ├── sections/
+    └── widgets/
+
+## Hard Rules
+- Widgets: pure UI, no logic, all data via parameters
+- Sections: logic only, NO styling
+- Views: combine sections only
+- Use ApiResult&lt;T&gt; + .fold() for API calls
+- Use AppColors.* never hardcode colors
+- const constructors everywhere possible
+- BlocBuilder always has buildWhen
+
+## When Done
+Report: Files created ✅ | Components reused ✅ | Blockers ⚠️
+    </div>
+  </div>
+
+  <h4 style="color: var(--purple); font-family: var(--mono); font-size: 13px; margin: 28px 0 12px; text-transform: uppercase; letter-spacing: 1px;">Phase 4 — Flutter Reviewer Agent</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">~/.gemini/agents/flutter-reviewer.md</span>
+    </div>
+    <div class="code-content">
+<span class="key">---</span>
+<span class="key">name:</span> <span class="str">flutter-reviewer</span>
+<span class="key">description:</span> <span class="str">Flutter code reviewer. Reviews Flutter features</span>
+<span class="cmt">             for Clean Architecture violations and performance issues.</span>
+<span class="key">tools:</span>
+  - <span class="val">read_file</span>
+  - <span class="val">list_directory</span>
+  - <span class="val">search_file_content</span>
+<span class="key">---</span>
+
+You are a ruthless Flutter Code Reviewer.
+
+## Review Checklist
+### Architecture 🏗️
+- No business logic in widgets/views
+- Sections have no styling/design code
+- Repository never calls API directly
+
+### Performance ⚡
+- const constructors used everywhere
+- BlocBuilder has buildWhen or BlocSelector
+- ListView uses .builder
+
+### Code Quality 📋
+- No hardcoded colors or text styles
+- No files over 200 lines
+- No _buildHelper() methods
+
+## Output Format
+### {feature} feature
+🔴 Critical: [list]
+🟡 Warning: [list]
+🟢 OK: [list]
+    </div>
+  </div>
+
+  <h4 style="color: var(--primary); font-family: var(--mono); font-size: 13px; margin: 28px 0 12px; text-transform: uppercase; letter-spacing: 1px;">Phase 5 — Reload وتشغيل</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">terminal — من مجلد المشروع</span>
+    </div>
+    <div class="code-content">
+<span class="cmt"># شغّل الـ CLI في مجلد المشروع</span>
+<span class="cmd">cd</span> /path/to/your/flutter/project
+<span class="cmd">gemini</span>
+
+<span class="cmt"># جوّا الـ CLI</span>
+/agents reload
+/agents <span class="cmt"># تأكد إن الـ 3 agents ظاهرين</span>
+    </div>
+  </div>
+
+  <h3 style="margin: 40px 0 16px; font-size: 20px;">الأمر النهائي 🚀</h3>
+  <div class="highlight">
+    <strong>افتح الـ CLI من مجلد المشروع وقوله:</strong>
+  </div>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+      <span class="code-label">داخل Gemini CLI</span>
+    </div>
+    <div class="code-content">
+@figma-orchestrator
+Analyze this Figma design and build the full Flutter app:
+<span class="str">https://figma.com/design/xxxxx...</span>
+
+Project stack:
+- Flutter + Cubit (flutter_bloc)
+- GetIt for DI
+- Dio + ApiResult&lt;T&gt;
+- GoRouter
+- AppColors for theming
+    </div>
+  </div>
+
+  <div class="cards" style="margin-top: 32px">
+    <div class="card" style="--accent: var(--primary)">
+      <div class="card-icon">1️⃣</div>
+      <h3>يحلل الـ Figma</h3>
+      <p>يقرأ كل الـ screens والـ components ويفهم الـ design</p>
+    </div>
+    <div class="card" style="--accent: var(--blue)">
+      <div class="card-icon">2️⃣</div>
+      <h3>يفهم مشروعك</h3>
+      <p>يقرأ الـ lib/ ويلاقي الـ existing components والـ patterns</p>
+    </div>
+    <div class="card" style="--accent: var(--orange)">
+      <div class="card-icon">3️⃣</div>
+      <h3>يوزّع بالتوازي</h3>
+      <p>كل feature بيبعتها لـ feature-builder منفصل في نفس الوقت</p>
+    </div>
+    <div class="card" style="--accent: var(--purple)">
+      <div class="card-icon">4️⃣</div>
+      <h3>يراجع الكل</h3>
+      <p>بعد ما الـ builders يخلصوا، flutter-reviewer يراجع كل حاجة</p>
+    </div>
+  </div>
+
+  <div class="highlight orange" style="margin-top: 32px">
+    <strong>💡 تيب مهم للـ Parallel:</strong> الـ Subagents بيشتغلوا في contexts منفصلة تماماً — يعني كل واحد بياخد memory وـ tokens مستقلة. لو المشروع كبير، خد بالك من الـ quota.
+  </div>
+</section>
+
+<!-- FILE STRUCTURE REFERENCE -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <div>
+      <div class="section-title">الـ File Structure المرجعية</div>
+      <div class="section-sub">كل الملفات اللي محتاج تعملها في مكانها الصح</div>
+    </div>
+  </div>
+
+  <div class="file-tree">
+~/.gemini/<br>
+├── <span class="dir">GEMINI.md</span>          <span class="cmt"># Global rules — بتتحمل دايماً</span><br>
+├── <span class="dir">settings.json</span>      <span class="cmt"># MCP servers + settings</span><br>
+├── <span class="dir">skills/</span><br>
+│   ├── <span class="dir">create-feature/</span><br>
+│   │   └── <span class="new">SKILL.md</span>    <span class="cmt"># Folder structure + architecture</span><br>
+│   ├── <span class="dir">networking/</span><br>
+│   │   └── <span class="new">SKILL.md</span>    <span class="cmt"># API + repos + error handling</span><br>
+│   ├── <span class="dir">performance-review/</span><br>
+│   │   └── <span class="new">SKILL.md</span>    <span class="cmt"># Flutter performance rules</span><br>
+│   └── <span class="dir">debug-issue/</span><br>
+│       └── <span class="new">SKILL.md</span>    <span class="cmt"># Debugging workflow</span><br>
+└── <span class="dir">agents/</span><br>
+    ├── <span class="new">figma-orchestrator.md</span>  <span class="cmt"># Main orchestrator</span><br>
+    ├── <span class="new">feature-builder.md</span>     <span class="cmt"># Builds Flutter features</span><br>
+    └── <span class="new">flutter-reviewer.md</span>    <span class="cmt"># Reviews the code</span><br>
+<br>
+your-flutter-project/<br>
+└── <span class="dir">GEMINI.md</span>              <span class="cmt"># Project-specific rules (optional)</span>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<footer class="footer">
+  <div class="container">
+    Gemini CLI Guide · Built for Flutter Developers · 2026
+  </div>
+</footer>
+
+<script>
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Fade in sections on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(section => {
+  section.style.opacity = '0';
+  section.style.transform = 'translateY(30px)';
+  section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  observer.observe(section);
+});
+</script>
+</body>
+</html>
